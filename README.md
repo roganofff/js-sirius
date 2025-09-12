@@ -1,4 +1,4 @@
-# js-sirius
+# Sirius-Jokers
 
 ### Описание
 Это приложение поможет создавать и читать самые угарные анекдоты, например, <details> <summary>мой любимый анекдот про гвозди...</summary>
@@ -71,3 +71,10 @@
 | POST   | /api/jokes/{id}/favorite  | Добавить в избранное  | —            | 201 Created        |
 | DELETE | /api/jokes/{id}/favorite  | Удалить из избранного | —            | 204 No Content     |
 | GET    | /api/users/{id}/favorites | Список избранного     | —            | `[ {...}, {...} ]` |
+
+
+### Библиотеки
+- express.js
+- log4js
+- dotenv
+- Migrate

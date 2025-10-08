@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const { Pool } = require('pg');
 const log4js = require('log4js');
 
 const app = express();
@@ -9,20 +8,33 @@ logger.level = 'debug';
 
 app.use(express.json());
 
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-});
+const authRoutes = require('./routes/auth');
+const jokesRoutes = require('./routes/jokes');
+const favoritesRoutes = require('./routes/favorites');
 
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/jokes', require('./routes/jokes'));
-app.use('/api', require('./routes/favorites'));
+app.use('/api/auth', authRoutes);
+app.use('/api/jokes', jokesRoutes);
+app.use('/api/favorites', favoritesRoutes);
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/health', async (_, res) => {
+  const { pool } = require('./db');
+  
+  try {
+    const client = await pool.connect();
+    client.release();
+    res.json({ 
+      status: 'OK', 
+      database: 'connected',
+      timestamp: new Date().toISOString() 
+    });
+  } catch (error) {
+    logger.error('Health check failed:', error);
+    res.status(500).json({ 
+      status: 'ERROR', 
+      database: 'disconnected',
+      error: error.message 
+    });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
@@ -30,4 +42,4 @@ app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
 });
 
-module.exports = { pool };
+module.exports = app;

@@ -8,6 +8,8 @@ const log4js = require('log4js');
 const logger = log4js.getLogger();
 logger.level = 'debug';
 
+console.log('Pool in auth routes:', pool ? 'defined' : 'undefined');
+
 const validateRegistration = (req, res, next) => {
   const { username, email, password } = req.body;
   
@@ -221,7 +223,7 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
 router.post('/check-availability', async (req, res) => {
   try {
     const { username, email } = req.body;
-    const results = {};
+    const results = {}; 
 
     if (username) {
       const userResult = await pool.query(

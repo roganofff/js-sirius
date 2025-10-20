@@ -17,7 +17,7 @@ app.use('/api/jokes', jokesRoutes);
 app.use('/api/favorites', favoritesRoutes);
 
 app.get('/health', async (_, res) => {
-  const { pool } = require('./db');
+  const { pool } = require('./config/db');
   
   try {
     const client = await pool.connect();

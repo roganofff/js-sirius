@@ -14,7 +14,7 @@ const validateJokeCreation = (req, res, next) => {
     return res.status(400).json({
       success: false,
       error: 'Missing required field',
-      details: 'Joke body is required'
+      details: 'Joke text and title are required'
     });
   }
 
@@ -242,8 +242,7 @@ router.get('/:id', async (req, res) => {
 
     const result = await pool.query(
       `SELECT j.*, u.username as author_name,
-              (SELECT COUNT(*) FROM favorites WHERE joke_id = j.id) as favorites_count,
-              (SELECT COUNT(*) FROM comments WHERE joke_id = j.id) as comments_count
+              (SELECT COUNT(*) FROM favorites WHERE joke_id = j.id) as favorites_count
        FROM jokes j 
        LEFT JOIN users u ON j.author_id = u.id 
        WHERE j.id = $1`,
@@ -352,18 +351,19 @@ router.patch('/:id', auth, validateJokeUpdate, async (req, res) => {
       queryParams.push(title);
     }
 
-    paramCount++;
-    updateFields.push(`updated_at = NOW()`);
+    updateFields.push('updated_at = NOW()');
+
     paramCount++;
     queryParams.push(id);
 
-    const result = await pool.query(
-      `UPDATE jokes 
-       SET ${updateFields.join(', ')} 
-       WHERE id = $${paramCount} 
-       RETURNING id, title, body, language, updated_at`,
-      queryParams
-    );
+    const sql = `
+      UPDATE jokes 
+      SET ${updateFields.join(', ')} 
+      WHERE id = $${paramCount} 
+      RETURNING id, title, body, language, updated_at
+    `;
+
+    const result = await pool.query(sql, queryParams);
 
     logger.debug(`Joke updated successfully: ${id}`);
 

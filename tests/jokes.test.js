@@ -9,19 +9,22 @@ jest.mock('../config/db', () => ({
   },
 }));
 
-jest.mock('../middleware/auth', () => (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    try {
-      const token = authHeader.slice(7);
-      req.user = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' });
+jest.mock('../middleware/auth', () => {
+  return (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.slice(7);
+        const jwtLocal = require('jsonwebtoken');
+        req.user = jwtLocal.verify(token, process.env.JWT_SECRET);
+      } catch (error) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+    } else {
+      return res.status(401).json({ error: 'No token provided' });
     }
-  } else {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-  next();
+    next();
+  };
 });
 
 const { pool } = require('../config/db');

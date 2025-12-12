@@ -1,0 +1,256 @@
+openapi: 3.0.0
+info:
+  title: Jokes API
+  version: 1.0.0
+  description: API for managing jokes, favorites and authentication for the Jokes app.
+servers:
+  - url: http://localhost:3000
+    description: Local server
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  database:
+                    type: string
+                  timestamp:
+                    type: string
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: Bad request
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Unauthorized
+  /api/jokes/:
+    get:
+      tags: [Jokes]
+      summary: Get jokes with pagination and filters
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: author
+          schema:
+            type: string
+        - in: query
+          name: language
+          schema:
+            type: string
+        - in: query
+          name: sort
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of jokes
+    post:
+      tags: [Jokes]
+      summary: Create a new joke
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, body, language]
+              properties:
+                title:
+                  type: string
+                body:
+                  type: string
+                language:
+                  type: string
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+  /api/jokes/random:
+    get:
+      tags: [Jokes]
+      summary: Get a random joke
+      parameters:
+        - in: query
+          name: language
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Random joke
+        '404':
+          description: No jokes found
+  /api/jokes/{id}:
+    get:
+      tags: [Jokes]
+      summary: Get joke by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Joke object
+        '404':
+          description: Not found
+    patch:
+      tags: [Jokes]
+      summary: Update a joke
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Updated
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+    delete:
+      tags: [Jokes]
+      summary: Delete a joke
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted
+        '403':
+          description: Forbidden
+  /api/favorites/jokes/{id}/favorite:
+    post:
+      tags: [Favorites]
+      summary: Add a joke to favorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Added
+        '400':
+          description: Bad request
+    delete:
+      tags: [Favorites]
+      summary: Remove a joke from favorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Removed
+        '400':
+          description: Bad request
+  /api/favorites/users/{id}/favorites:
+    get:
+      tags: [Favorites]
+      summary: Get user's favorite jokes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of favorite jokes
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  - name: Auth
+  - name: Jokes
+  - name: Favorites
+  - name: Health
